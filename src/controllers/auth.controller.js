@@ -156,6 +156,7 @@ const loginUser = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        photoURL: user.profilePic,
       },
     });
   } catch (error) {
@@ -172,7 +173,7 @@ const loginUser = async (req, res) => {
 
 const googleLogin = async (req, res) => {
   try {
-    const { email, name } = req.body;
+    const { email, name, photoURL } = req.body;
 
     if (!email || !name) {
       return res.status(400).json({
@@ -192,7 +193,12 @@ const googleLogin = async (req, res) => {
         name,
         email,
         password: hashedPassword,
+        profilePic: photoURL, // Optionally store it if the schema supports it
       });
+    } else if (photoURL && !user.profilePic) {
+      // Optional: update existing user with profile pic
+      user.profilePic = photoURL;
+      await user.save();
     }
 
     const token = jwt.sign(
@@ -213,6 +219,7 @@ const googleLogin = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        photoURL: photoURL || user.profilePic,
       },
     });
   } catch (error) {
